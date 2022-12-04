@@ -53,7 +53,6 @@ class Knight(Piece):
         assumes this move is valid according to chess rules
         '''
 
-
 class King(Piece):
     def __init__(self, pos_X : int, pos_Y : int, side_ : bool):
         '''sets initial values by calling the constructor of Piece'''
@@ -95,7 +94,8 @@ def read_board(filename: str) -> Board:
     '''
     reads board configuration from file in current directory in plain format
     raises IOError exception if file is not valid (see section Plain board configurations)
-    '''
+   '''
+
 
 def save_board(filename: str, B: Board) -> None:
     '''saves board configuration into file in current directory in plain format'''
@@ -116,13 +116,22 @@ def conf2unicode(B: Board) -> str:
 
 
 def main() -> None:
-    '''
-    runs the play
-
-    Hint: implementation of this could start as follows:
+    '''runs the play'''
     filename = input("File name for initial configuration: ")
-    ...
-    '''    
+    get_filename = True
+    while get_filename:
+        try:
+            if filename == 'QUIT':
+                break
+            else:
+                board = read_board(filename)
+                get_filename = False
+                unicode = conf2unicode(board)
+                print(f"The initial configuration is:\n{unicode}")
+        except IOError:
+            print("This is not a valid file.")
+            filename = input("File name for initial configuration: ")
+
 
 if __name__ == '__main__': #keep this in
    main()
