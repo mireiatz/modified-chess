@@ -1,9 +1,14 @@
 def location2index(loc: str) -> tuple[int, int]:
     '''converts chess location to corresponding x and y coordinates'''
-    
-	
+    x = ord(loc[1]) - 96
+    y = int(loc[2])
+    return x, y
+
 def index2location(x: int, y: int) -> str:
-    '''converts  pair of coordinates to corresponding location'''
+    '''converts pair of coordinates to corresponding location'''
+    a = chr(x + 96)
+    b = str(y)
+    return a + b
 
 class Piece:
     pos_x : int	
@@ -168,7 +173,7 @@ def locations2pieces(locations: str, colour: str) -> list[Piece]:
             piece = King(index[0], index[1], False)
         pieces.append(piece)
     return pieces
-    
+
 def read_board(filename: str) -> Board:
     '''
     reads board configuration from file in current directory in plain format
