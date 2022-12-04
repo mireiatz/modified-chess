@@ -90,11 +90,110 @@ def is_stalemate(side: bool, B: Board) -> bool:
     - use can_move_to 
     '''
 
+def validate_locations(locations: str) -> bool:
+    '''checks if a locations line in a file is of a valid format according to:
+        - String like Xcr where X is either K or N (King or kNight) and cr is the columns and row numbers
+        - Only one king of each colour
+        - Only one piece for location
+        - Each location is within s*s'''
+
+    locations_list = locations.split(',')
+    king = 0
+    for location in locations_list:
+        location = location.strip()
+        # syntax
+        if (location[0] == 'N' or location[0] == 'K') and location[1].isalpha() and location[1].islower() and location[2:].isnumeric() and 0 < int(location[2:]) < 26:
+            # only one king
+            if location[0] == 'K':
+                king += 1
+                if king > 1:
+                    return False
+        else:
+            return False
+
+    # only one piece for location - no duplicates
+    if len(locations_list) != len(set(locations_list)):
+        return False
+
+    return True
+
+def validate_board(filename: str) -> bool:
+    '''
+    validates board configuration:
+        - First line: number representing the size of the board
+        - Second line: piece locations of white pieces separated by ,
+        - Third line: piece locations of black pieces separated by ,
+    '''
+    file = open(filename, 'r')
+    # 1st line - size
+    board_size = file.readline().replace("\n", "")
+
+    if board_size.isnumeric() and 3 < int(board_size) < 26:
+        # 2nd line - white
+        locations_white = file.readline().replace("\n", "")
+        validated_white = validate_locations(locations_white)
+
+        if validated_white:
+            # 3rd line - black
+            locations_black = file.readline().replace("\n", "")
+            validated_black = validate_locations(locations_black)
+
+            if validated_black:
+                file.close()
+                return True
+            else:
+                file.close()
+                return False
+        else:
+            file.close()
+            return False
+    else:
+        file.close()
+        return False
+
+def locations2pieces(locations: str, colour: str) -> list[Piece]:
+    '''turns locations into pieces and returns a list of pieces'''
+    locations_list = locations.split(',')
+    pieces = []
+    for location in locations_list:
+        location = location.strip()
+        index = location2index(location)
+        if location[0] == 'N' and colour == 'w':
+            piece = Knight(index[0], index[1], True)
+        elif location[0] == 'N' and colour == 'b':
+            piece = Knight(index[0], index[1], False)
+        elif location[0] == 'K' and colour == 'w':
+            piece = King(index[0], index[1], True)
+        else:
+            piece = King(index[0], index[1], False)
+        pieces.append(piece)
+    return pieces
+    
 def read_board(filename: str) -> Board:
     '''
     reads board configuration from file in current directory in plain format
     raises IOError exception if file is not valid (see section Plain board configurations)
-   '''
+    '''
+    if validate_board(filename):
+        file = open(filename, 'r')
+
+        board_size = int(file.readline())
+
+        #white pieces
+        locations_white = file.readline().replace("\n", "")
+        pieces_white = locations2pieces(locations_white, 'w')
+
+        #black pieces
+        locations_black = file.readline().replace("\n", "")
+        pieces_black = locations2pieces(locations_black, 'b')
+
+        all_pieces = pieces_white + pieces_black
+
+        board = (board_size, all_pieces)
+
+        return board
+    else:
+        raise IOError
 
 
 def save_board(filename: str, B: Board) -> None:
