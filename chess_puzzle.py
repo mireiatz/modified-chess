@@ -420,14 +420,30 @@ def save_board(filename: str, B: Board) -> None:
 
 
 def find_black_move(B: Board) -> tuple[Piece, int, int]:
-    '''
-    returns (P, x, y) where a Black piece P can move on B to coordinates x,y according to chess rules 
+    """
+    returns (P, x, y) where a Black piece P can move on B to coordinates x,y according to chess rules
     assumes there is at least one black piece that can move somewhere
 
-    Hints: 
+    Hints:
     - use methods of random library
     - use can_move_to
-    '''
+    """
+    locations = []
+    possible_moves = []
+    for row in range(B[0], 0, -1):
+        for column in range(1, B[0] + 1):
+            locations.append((column, row))
+
+    for piece in B[1]:
+        if piece.side is False:
+            for location in locations:
+                if piece2type(piece).can_move_to(location[0], location[1], B):
+                    possible_moves.append((piece, location[0], location[1]))
+
+    r = random.randrange(len(possible_moves))
+
+    return possible_moves[r]
+
 
 def conf2unicode(B: Board) -> str: 
     '''converts board cofiguration B to unicode format string (see section Unicode board configurations)'''
