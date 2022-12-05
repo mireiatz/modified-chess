@@ -1,23 +1,31 @@
+from typing import Union
+import copy
+import random
+
+
 def location2index(loc: str) -> tuple[int, int]:
-    '''converts chess location to corresponding x and y coordinates'''
+    """Converts chess location to corresponding x and y coordinates."""
     x = ord(loc[1]) - 96
     y = int(loc[2])
     return x, y
 
+
 def index2location(x: int, y: int) -> str:
-    '''converts pair of coordinates to corresponding location'''
+    """converts a pair of coordinates to corresponding location"""
     a = chr(x + 96)
     b = str(y)
     return a + b
 
-class Piece():
+
+class Piece:
+
     pos_x: int
     pos_y: int
     side: bool  # True for White and False for Black
     type: str
 
     def __init__(self, pos_X: int, pos_Y: int, side_: bool, type_: str):
-        '''sets initial values'''
+        """sets initial values"""
         self.pos_x = pos_X
         self.pos_y = pos_Y
         self.side = side_
@@ -293,11 +301,11 @@ def is_stalemate(side: bool, B: Board) -> bool:
 
 
 def validate_locations(locations: str) -> bool:
-    '''checks if a locations line in a file is of a valid format according to:
+    """checks if a locations line in a file is of a valid format according to:
         - String like Xcr where X is either K or N (King or kNight) and cr is the columns and row numbers
         - Only one king of each colour
         - Only one piece for location
-        - Each location is within s*s'''
+        - Each location is within s*s"""
 
     locations_list = locations.split(',')
     king = 0
@@ -318,6 +326,7 @@ def validate_locations(locations: str) -> bool:
         return False
 
     return True
+
 
 def validate_board(filename: str) -> bool:
     """
@@ -360,23 +369,24 @@ def validate_board(filename: str) -> bool:
         return False
 
 
-def locations2pieces(locations: str, colour: str) -> list[Piece]:
-    '''turns locations into pieces and returns a list of pieces'''
+def locations2pieces(locations: str, side: bool) -> list[Piece]:
+    """turns locations into pieces and returns a list of pieces"""
     locations_list = locations.split(',')
     pieces = []
     for location in locations_list:
         location = location.strip()
         index = location2index(location)
-        if location[0] == 'N' and colour == 'w':
+        if location[0] == 'N' and side:
             piece = Knight(index[0], index[1], True)
-        elif location[0] == 'N' and colour == 'b':
+        elif location[0] == 'N' and side is False:
             piece = Knight(index[0], index[1], False)
-        elif location[0] == 'K' and colour == 'w':
+        elif location[0] == 'K' and side:
             piece = King(index[0], index[1], True)
         else:
             piece = King(index[0], index[1], False)
         pieces.append(piece)
     return pieces
+
 
 def read_board(filename: str) -> Board:
     """
@@ -479,7 +489,6 @@ def conf2file(B: Board) -> str:
             file_line_black += f'N{index2location(piece.pos_x, piece.pos_y)}, '
 
     return f'{file_line_white[:-2]}\n{file_line_black[:-2]}'
-
 
 
 def save_board(filename: str, B: Board) -> None:
