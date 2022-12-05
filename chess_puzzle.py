@@ -27,14 +27,23 @@ class Piece():
 Board = tuple[int, list[Piece]]
 
 
-def is_piece_at(pos_X : int, pos_Y : int, B: Board) -> bool:
-    '''checks if there is piece at coordinates pox_X, pos_Y of board B''' 
-	
-def piece_at(pos_X : int, pos_Y : int, B: Board) -> Piece:
-    '''
-    returns the piece at coordinates pox_X, pos_Y of board B 
+def is_piece_at(pos_X: int, pos_Y: int, B: Board) -> bool:
+    """checks if there is piece at coordinates pox_X, pos_Y of board B"""
+    for piece in B[1]:
+        if pos_X == piece.pos_x and pos_Y == piece.pos_y:
+            return True
+    return False
+
+
+def piece_at(pos_X: int, pos_Y: int, B: Board) -> Piece:
+    """
+    returns the piece at coordinates pox_X, pos_Y of board B
     assumes some piece at coordinates pox_X, pos_Y of board B is present
-    '''
+    """
+    for piece in B[1]:
+        if piece.pos_x == pos_X and piece.pos_y == pos_Y:
+            return piece
+
 
 class Knight(Piece):
     type: str = 'N'
