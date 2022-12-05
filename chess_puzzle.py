@@ -213,28 +213,84 @@ class King(Piece):
 
 
 def is_check(side: bool, B: Board) -> bool:
-    '''
-    checks if configuration of B is check for side
+    """
+    checks if configuration of B is in check for side - if an enemy can reach the side's king then side is in check
+
     Hint: use can_reach
-    '''
+    """
+    enemy_pieces = []
+    for piece in B[1]:
+        if piece.side != side:
+            enemy_pieces.append(piece)
+        if piece.side == side and piece.type == 'K':
+            side_king = piece
+    for enemy_piece in enemy_pieces:
+        if piece2type(enemy_piece).can_reach(side_king.pos_x, side_king.pos_y, B):
+            return True
+    return False
+
 
 def is_checkmate(side: bool, B: Board) -> bool:
-    '''
-    checks if configuration of B is checkmate for side
+    """
+    checks if configuration of B is checkmate for side - if side is in check and cannot move the king to a location the enemy cannot reach then side is in checkmate
 
-    Hints: 
+    Hints:
     - use is_check
-    - use can_reach 
-    '''
+    - use can_reach
+    """
+    if is_check(side, B):
+        enemy_pieces = []
+        all_locations = []
+        checkmate = True
+        for piece in B[1]:
+            if piece.side != side:
+                enemy_pieces.append(piece)
+            if piece.side == side and piece.type == 'K':
+                side_king = piece
+
+        for row in range(B[0], 0, -1):
+            for column in range(1, B[0] + 1):
+                all_locations.append((column, row))
+
+        for location in all_locations:
+            for enemy_piece in enemy_pieces:
+                if piece2type(enemy_piece).can_reach(location[0], location[1], B) is False and piece2type(side_king).can_reach(location[0], location[1], B):
+                    checkmate = False
+                    break
+
+        return checkmate
+    else:
+        return False
+
 
 def is_stalemate(side: bool, B: Board) -> bool:
-    '''
-    checks if configuration of B is stalemate for side
+    """
+    checks if configuration of B is stalemate for side - if side is not in check but there is no available move then side is in stalemate
 
-    Hints: 
+    Hints:
     - use is_check
-    - use can_move_to 
-    '''
+    - use can_move_to
+    """
+    if is_check(side, B) is False:
+        stalemate = True
+        pieces = []
+        locations = []
+        for piece in B[1]:
+            if piece.side == side:
+                pieces.append(piece)
+
+        for row in range(B[0], 0, -1):
+            for column in range(1, B[0] + 1):
+                locations.append((column, row))
+
+        for location in locations:
+            for piece in pieces:
+                if piece.pos_x == location[0] and piece.pos_y == location[1]:
+                    stalemate = False
+        return stalemate
+    else:
+        return False
+
 
 def validate_locations(locations: str) -> bool:
     '''checks if a locations line in a file is of a valid format according to:
