@@ -54,36 +54,131 @@ B1 = (5, [wn1, bn1, wn2, bn2, wn3, wk1, bk1])
 '''
 
 
-#check if piece at location
+
+
+# check if piece at location
 def test_is_piece_at1():
-    assert is_piece_at(2,2, B1) == False
+    assert is_piece_at(2, 2, B1) is False
+
 
 def test_is_piece_at2():
-    assert is_piece_at(5,2, B1) == True
+    assert is_piece_at(5, 2, B1) is True
 
 
-#piece at location
+def test_is_piece_at3():
+    assert is_piece_at(2, 1, B1) is False
+
+
+def test_is_piece_at4():
+    assert is_piece_at(2, 3, B1) is True
+
+
+def test_is_piece_at5():
+    assert is_piece_at(5, 5, B1) is False
+
+
+# piece at location
 def test_piece_at1():
-    assert piece_at(1,1, B1) == bn1
+    assert piece_at(1, 1, B1) == bn1
+
 
 def test_piece_at2():
-    assert piece_at(5,4, B1) == wn3
+    assert piece_at(5, 4, B1) == wn3
 
 
-#meets [Rule1] or [Rule2] and [Rule3]
+def test_piece_at3():
+    assert piece_at(2, 3, B1) == bk1
+
+
+def test_piece_at4():
+    assert piece_at(3, 5, B1) == wk1
+
+
+def test_piece_at5():
+    assert piece_at(2, 4, B1) == bn2
+
+
+# meets [Rule1] or [Rule2] and [Rule3]
 def test_can_reach1():
-    assert bn1.can_reach(2,2, B1) == False
+    """checks Rule 1 - move not allowed for knight"""
+    assert bn1.can_reach(2, 2, B1) is False
+
 
 def test_can_reach2():
-    assert wk1.can_reach(3,6, B1) == True
+    """checks Rule 1 - move allowed for knight"""
+    assert wn2.can_reach(3, 1, B1) is True
 
 
-#meets all other rules
+def test_can_reach3():
+    """checks Rule 2 - move not allowed for king"""
+    assert wk1.can_reach(4, 2, B1) is False
+
+
+def test_can_reach4():
+    """checks Rule 2 - move allowed for king"""
+    assert wk1.can_reach(2, 5, B1) is True
+
+
+def test_can_reach5():
+    """checks Rule 3 for white - cannot capture own side"""
+    assert wn3.can_reach(3, 5, B1) is False
+
+
+def test_can_reach6():
+    """checks Rule 3 for white - can capture opposite side"""
+    assert wn1.can_reach(2, 4, B1) is True
+
+
+def test_can_reach7():
+    """checks Rule 3 for black - cannot capture own side"""
+    assert bk1.can_reach(2, 4, B1) is False
+
+
+def test_can_reach8():
+    """checks Rule 3 for black - can capture opposite side"""
+    assert bn2.can_reach(1, 2, B1) is True
+
+
+# meets all other rules
 def test_can_move_to1():
-    assert wk1.can_move_to(4,5, B1) == False
+    """checks Rule 4 - results in check"""
+    assert wk1.can_move_to(4, 5, B1) is False
+
 
 def test_can_move_to2():
-    assert bk1.can_move_to(3,3, B1) == False #cannot move to where it becomes in check
+    """checks Rule 4 - results in check"""
+    assert bk1.can_move_to(3, 3, B1) is False
+
+
+def test_can_move_to3():
+    """checks Rule 4 - results in check"""
+    assert wn2.can_move_to(3, 3, B1) is False
+
+
+def test_can_move_to4():
+    """checks Rule 4 - results in check"""
+    bn3 = Knight(3, 2, False)
+    assert bn3.can_move_to(4, 4, B1) is False
+
+
+def test_can_move_to5():
+    """checks Rule 4 - does not result in check"""
+    assert wn2.can_move_to(3, 1, B1) is True
+
+
+def test_can_move_to6():
+    """checks Rule 4 - does not result in check"""
+    assert bn2.can_move_to(4, 4, B1) is True
+
+
+def test_can_move_to5():
+    """checks Rule 4 - does not result in check"""
+    assert wk1.can_move_to(2, 5, B1) is True
+
+
+def test_can_move_to6():
+    """checks Rule 4 - does not result in check"""
+    assert bk1.can_move_to(1, 3, B1) is True
 
 
 #new board configuration
