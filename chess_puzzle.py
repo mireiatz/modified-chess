@@ -46,54 +46,171 @@ def piece_at(pos_X: int, pos_Y: int, B: Board) -> Piece:
 
 
 class Knight(Piece):
+
     type: str = 'N'
 
     def __init__(self, pos_X: int, pos_Y: int, side_: bool):
-        '''sets initial values by calling the constructor of Piece'''
+        """sets initial values by calling the constructor of Piece"""
         super().__init__(pos_X, pos_Y, side_, self.type)
 
-    def can_reach(self, pos_X : int, pos_Y : int, B: Board) -> bool:
-        '''
+    def set_location(self, pos_X: int, pos_Y: int) -> None:
+        self.pos_x = pos_X
+        self.pos_y = pos_Y
+
+    def can_reach(self, pos_X: int, pos_Y: int, B: Board) -> bool:
+        """
         checks if this rook can move to coordinates pos_X, pos_Y
         on board B according to rule [Rule1] and [Rule3] (see section Intro)
         Hint: use is_piece_at
-        '''
-    def can_move_to(self, pos_X : int, pos_Y : int, B: Board) -> bool:
-        '''
+        """
+        # rule 1
+        if (pos_X == self.pos_x - 1 and pos_Y == self.pos_y - 2) or (
+                pos_X == self.pos_x - 1 and pos_Y == self.pos_y + 2) or (
+                pos_X == self.pos_x + 1 and pos_Y == self.pos_y - 2) or (
+                pos_X == self.pos_x + 1 and pos_Y == self.pos_y + 2) or (
+                pos_X == self.pos_x - 2 and pos_Y == self.pos_y - 1) or (
+                pos_X == self.pos_x - 2 and pos_Y == self.pos_y + 1) or (
+                pos_X == self.pos_x + 2 and pos_Y == self.pos_y - 1) or (
+                pos_X == self.pos_x + 2 and pos_Y == self.pos_y + 1):
+
+            # rule 3
+            if is_piece_at(pos_X, pos_Y, B):
+                piece_at_destination = piece_at(pos_X, pos_Y, B)
+                if piece_at_destination.side == self.side:
+                    return False
+                else:
+                    return True
+            else:
+                return True
+        else:
+            return False
+
+    def can_move_to(self, pos_X: int, pos_Y: int, B: Board) -> bool:
+        """
         checks if this rook can move to coordinates pos_X, pos_Y
         on board B according to all chess rules
-        
+
         Hints:
         - firstly, check [Rule1] and [Rule3] using can_reach
         - secondly, check if result of move is capture using is_piece_at
         - if yes, find the piece captured using piece_at
         - thirdly, construct new board resulting from move
         - finally, to check [Rule4], use is_check on new board
-        '''
-    def move_to(self, pos_X : int, pos_Y : int, B: Board) -> Board:
-        '''
-        returns new board resulting from move of this rook to coordinates pos_X, pos_Y on board B 
-        assumes this move is valid according to chess rules
-        '''
+        """
+        # rule 1 and rule 3
+        if self.can_reach(pos_X, pos_Y, B):
+            B2 = copy.deepcopy(B)
+
+            # capture destination piece
+            if is_piece_at(pos_X, pos_Y, B2):
+                piece_at_destination = piece_at(pos_X, pos_Y, B2)
+                B2[1].remove(piece_at_destination)
+
+            # change location of origin piece
+            for piece in B2[1]:
+                if piece.pos_x == self.pos_x and piece.pos_y == self.pos_y and piece.type == self.type and piece.side == self.side:
+                    piece.pos_x = pos_X
+                    piece.pos_y = pos_Y
+                    break
+
+            # is in check
+            if is_check(self.side, B2):
+                return False
+            else:
+                return True
+        else:
+            return False
+
+    def move_to(self, pos_X: int, pos_Y: int, B: Board) -> Board:
+        """
+        returns new board resulting from move of this rook to coordinates pos_X, pos_Y on board B, assumes this move is valid according to chess rules
+        """
+        for piece in B[1]:
+            # capture
+            if piece.pos_x == pos_X and piece.pos_y == pos_Y:
+                B[1].remove(piece)
+
+            # move to location
+            if piece.pos_x == self.pos_x and piece.pos_y == self.pos_y:
+                B[1].remove(piece)
+
+        B[1].append(Piece(pos_X, pos_Y, self.side, self.type))
+        return B
+
 
 class King(Piece):
+
     type: str = 'K'
 
     def __init__(self, pos_X: int, pos_Y: int, side_: bool):
-        '''sets initial values by calling the constructor of Piece'''
+        """sets initial values by calling the constructor of Piece"""
         super().__init__(pos_X, pos_Y, side_, self.type)
-   
-    def can_reach(self, pos_X : int, pos_Y : int, B: Board) -> bool:
-        '''checks if this king can move to coordinates pos_X, pos_Y on board B according to rule [Rule2] and [Rule3]'''
 
-    def can_move_to(self, pos_X : int, pos_Y : int, B: Board) -> bool:
-        '''checks if this king can move to coordinates pos_X, pos_Y on board B according to all chess rules'''
-        
-    def move_to(self, pos_X : int, pos_Y : int, B: Board) -> Board:
-        '''
-        returns new board resulting from move of this king to coordinates pos_X, pos_Y on board B 
-        assumes this move is valid according to chess rules
-        '''
+    def can_reach(self, pos_X: int, pos_Y: int, B: Board) -> bool:
+        """checks if this king can move to coordinates pos_X, pos_Y on board B according to rule [Rule2] and [Rule3] """
+        # rule 1
+        if (pos_X == self.pos_x - 1 and pos_Y == self.pos_y) or (
+                pos_X == self.pos_x - 1 and pos_Y == self.pos_y - 1) or (
+                pos_X == self.pos_x - 1 and pos_Y == self.pos_y + 1) or (
+                pos_X == self.pos_x + 1 and pos_Y == self.pos_y) or (
+                pos_X == self.pos_x + 1 and pos_Y == self.pos_y - 1) or (
+                pos_X == self.pos_x + 1 and pos_Y == self.pos_y + 1) or (
+                pos_X == self.pos_x and pos_Y == self.pos_y - 1) or (
+                pos_X == self.pos_x and pos_Y == self.pos_y + 1):
+            # rule 3
+            if is_piece_at(pos_X, pos_Y, B):
+                piece_at_destination = piece_at(pos_X, pos_Y, B)
+                if piece_at_destination.side == self.side:
+                    return False
+                else:
+                    return True
+            else:
+                return True
+        else:
+            return False
+
+    def can_move_to(self, pos_X: int, pos_Y: int, B: Board) -> bool:
+        """checks if this king can move to coordinates pos_X, pos_Y on board B according to all chess rules"""
+        # rule 1 and rule 3
+        if self.can_reach(pos_X, pos_Y, B):
+            B2 = copy.deepcopy(B)
+
+            # capture destination piece
+            if is_piece_at(pos_X, pos_Y, B2):
+                piece_at_destination = piece_at(pos_X, pos_Y, B2)
+                B2[1].remove(piece_at_destination)
+
+            # change location of origin piece
+            for piece in B2[1]:
+                if piece.pos_x == self.pos_x and piece.pos_y == self.pos_y and piece.type == self.type and piece.side == self.side:
+                    piece.pos_x = pos_X
+                    piece.pos_y = pos_Y
+                    break
+
+            # is in check
+            if is_check(self.side, B2):
+                return False
+            else:
+                return True
+        else:
+            return False
+
+    def move_to(self, pos_X: int, pos_Y: int, B: Board) -> Board:
+        """
+        returns new board resulting from move of this king to coordinates pos_X, pos_Y on board B, assumes this move is valid according to chess rules
+        """
+        for piece in B[1]:
+            # capture
+            if piece.pos_x == pos_X and piece.pos_y == pos_Y:
+                B[1].remove(piece)
+
+            # move to location
+            if piece.pos_x == self.pos_x and piece.pos_y == self.pos_y:
+                B[1].remove(piece)
+
+        B[1].append(Piece(pos_X, pos_Y, self.side, self.type))
+        return B
+
 
 def is_check(side: bool, B: Board) -> bool:
     '''
