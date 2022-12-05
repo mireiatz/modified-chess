@@ -376,3 +376,68 @@ def test_conf2unicode5():
     B = (5, [wn1, wn2, wn3, wk1a, bn1, bk1, bn2a, bn3])
     assert conf2unicode(B) == '♔\u2001\u2001\u2001\u2001\n\u2001\u2001♞♞♘\n\u2001♚\u2001\u2001\u2001\n    ♘\u2001\u2001\u2001♘\n♞\u2001\u2001\u2001\u2001\n'
 
+
+
+
+# convert piece to class type
+p1 = Piece(1, 2, True, 'K')
+p2 = Piece(5, 6, True, 'N')
+p3 = Piece(2, 8, False, 'K')
+p4 = Piece(9, 1, False, 'N')
+p5 = Piece(1, 1, True, 'K')
+
+
+def test_piece2type1():
+    assert piece2type(p1) == King(1, 2, True)
+
+
+def test_piece2type2():
+    assert piece2type(p2) == Knight(5, 6, True)
+
+
+def test_piece2type3():
+    assert piece2type(p3) == King(2, 8, False)
+
+
+def test_piece2type4():
+    assert piece2type(p4) == Knight(9, 1, False)
+
+
+def test_piece2type5():
+    assert piece2type(p5) == King(1, 1, True)
+
+
+# read move
+def test_read_move1():
+    """check move format"""
+    read_move('*2b1', True, B1)
+    with pytest.raises(IOError):
+        print("IOError")
+
+
+def test_read_move2():
+    """check move format"""
+    read_move('aab1', True, B1)
+    with pytest.raises(IOError):
+        print("IOError")
+
+
+def test_read_move3():
+    """check move format"""
+    read_move('a221', True, B1)
+    with pytest.raises(IOError):
+        print("IOError")
+
+
+def test_read_move4():
+    """check move format"""
+    read_move('a2b*', True, B1)
+    with pytest.raises(IOError):
+        print("IOError")
+
+
+def test_read_move5():
+    """check move format"""
+    read_move('a22c3', True, B1)
+    with pytest.raises(IOError):
+        print("IOError")
