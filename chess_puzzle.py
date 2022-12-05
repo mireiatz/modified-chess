@@ -238,6 +238,53 @@ def conf2unicode(B: Board) -> str:
     '''converts board cofiguration B to unicode format string (see section Unicode board configurations)'''
 
 
+
+def read_move(move: str, side: bool, B: Board) -> tuple[tuple[int, int], tuple[int, int]]:
+    """checks if move is of valid format and returns the locations"""
+
+    # check syntax
+    if move.isalnum():
+        from_column = move[0]
+        if move[1:3].isnumeric():
+            from_row = move[1:3]
+            to_column = move[3]
+            to_row = move[4:]
+        else:
+            from_row = move[1:2]
+            to_column = move[2]
+            to_row = move[3:]
+
+        # check syntax
+        if from_column.isalpha() and from_row.isnumeric() and 0 < int(from_row) <= B[0] and to_column.isalpha() and to_row.isnumeric() and 0 < int(to_row) <= B[0]:
+            # there is a piece at the "from" location
+            from_indexes = location2index(f' {from_column}{from_row}')
+            to_indexes = location2index(f' {to_column}{to_row}')
+            if is_piece_at(from_indexes[0], from_indexes[1], B):
+                piece_at_origin = piece_at(from_indexes[0], from_indexes[1], B)
+                if piece_at_origin.side == side:
+                    return from_indexes, to_indexes
+                else:
+                    raise IOError
+            else:
+                raise IOError
+        else:
+            raise IOError
+    else:
+        raise IOError
+
+
+def piece2type(piece: Piece) -> Union[King, Knight]:
+    """converts pieces into their class type"""
+    if piece.side and piece.type == 'K':
+        return King(piece.pos_x, piece.pos_y, True)
+    elif piece.side and piece.type == 'N':
+        return Knight(piece.pos_x, piece.pos_y, True)
+    elif piece.side is False and piece.type == 'K':
+        return King(piece.pos_x, piece.pos_y, False)
+    elif piece.side is False and piece.type == 'N':
+        return Knight(piece.pos_x, piece.pos_y, False)
+
+
 def next_round(B: Board) -> None:
     """runs next round"""
     move_white = input("Next move of White: ")
@@ -252,8 +299,6 @@ def next_round(B: Board) -> None:
                 # validate move
                 move = read_move(move_white, True, B)
                 piece = piece2type(piece_at(move[0][0], move[0][1], B))
-                print(f'moving piece {piece.type} {piece.pos_x}, {piece.pos_y}')
-                print(f'move to {move[1][0]}, {move[1][1]}')
                 if piece.can_move_to(move[1][0], move[1][1], B):
                     # make move
                     new_board_white = piece.move_to(move[1][0], move[1][1], B)
