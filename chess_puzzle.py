@@ -320,12 +320,12 @@ def validate_locations(locations: str) -> bool:
     return True
 
 def validate_board(filename: str) -> bool:
-    '''
+    """
     validates board configuration:
         - First line: number representing the size of the board
         - Second line: piece locations of white pieces separated by ,
         - Third line: piece locations of black pieces separated by ,
-    '''
+    """
     file = open(filename, 'r')
     # 1st line - size
     board_size = file.readline().replace("\n", "")
@@ -333,11 +333,17 @@ def validate_board(filename: str) -> bool:
     if board_size.isnumeric() and 3 < int(board_size) < 26:
         # 2nd line - white
         locations_white = file.readline().replace("\n", "")
+        locations_white = locations_white.strip()
+        if locations_white[-1] == ',':
+            locations_white = locations_white[:-1]
         validated_white = validate_locations(locations_white)
 
         if validated_white:
             # 3rd line - black
             locations_black = file.readline().replace("\n", "")
+            locations_black = locations_black.strip()
+            if locations_black[-1] == ',':
+                locations_black = locations_black[:-1]
             validated_black = validate_locations(locations_black)
 
             if validated_black:
@@ -352,6 +358,7 @@ def validate_board(filename: str) -> bool:
     else:
         file.close()
         return False
+
 
 def locations2pieces(locations: str, colour: str) -> list[Piece]:
     '''turns locations into pieces and returns a list of pieces'''
@@ -372,27 +379,33 @@ def locations2pieces(locations: str, colour: str) -> list[Piece]:
     return pieces
 
 def read_board(filename: str) -> Board:
-    '''
+    """
     reads board configuration from file in current directory in plain format
     raises IOError exception if file is not valid (see section Plain board configurations)
-    '''
+    """
     if validate_board(filename):
         file = open(filename, 'r')
 
         board_size = int(file.readline())
 
-        #white pieces
+        # white pieces
         locations_white = file.readline().replace("\n", "")
-        pieces_white = locations2pieces(locations_white, 'w')
+        locations_white = locations_white.strip()
+        if locations_white[-1] == ',':
+            locations_white = locations_white[:-1]
+        pieces_white = locations2pieces(locations_white, True)
 
-        #black pieces
+        # black pieces
         locations_black = file.readline().replace("\n", "")
-        pieces_black = locations2pieces(locations_black, 'b')
+        locations_black = locations_black.strip()
+        if locations_black[-1] == ',':
+            locations_black = locations_black[:-1]
+        pieces_black = locations2pieces(locations_black, False)
 
         all_pieces = pieces_white + pieces_black
 
         board = (board_size, all_pieces)
-
+        file.close()
         return board
     else:
         raise IOError
