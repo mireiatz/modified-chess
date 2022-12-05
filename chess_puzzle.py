@@ -411,14 +411,6 @@ def read_board(filename: str) -> Board:
         raise IOError
 
 
-def save_board(filename: str, B: Board) -> None:
-    """saves board configuration into file in current directory in plain format"""
-    file = open(filename, 'w')
-    file.write(f'{B[0]}\n{conf2file(B)}')
-    file.close()
-    print("The game configuration was saved.")
-
-
 def find_black_move(B: Board) -> tuple[Piece, int, int]:
     """
     returns (P, x, y) where a Black piece P can move on B to coordinates x,y according to chess rules
@@ -445,9 +437,57 @@ def find_black_move(B: Board) -> tuple[Piece, int, int]:
     return possible_moves[r]
 
 
-def conf2unicode(B: Board) -> str: 
-    '''converts board cofiguration B to unicode format string (see section Unicode board configurations)'''
+def conf2unicode(B: Board) -> str:
+    """converts board configuration B to unicode format string (see section Unicode board configurations)"""
+    unicode = ''
+    for row in range(B[0], 0, -1):
+        for column in range(1, B[0]+1):
 
+            for piece in B[1]:
+                code = ''
+                if piece.pos_x == column and piece.pos_y == row:
+                    if piece.side and piece.type == 'K':
+                        code = '\u2654'
+                    elif piece.side and piece.type == 'N':
+                        code = '\u2658'
+                    elif piece.side is False and piece.type == 'K':
+                        code = '\u265A'
+                    elif piece.side is False and piece.type == 'N':
+                        code = '\u265E'
+                    unicode += code
+                    break
+
+            if code == '':
+                unicode += '\u2001'
+
+        unicode += '\n'
+    return unicode
+
+
+def conf2file(B: Board) -> str:
+    """converts board configuration to lines to be saved on file"""
+    file_line_white = ''
+    file_line_black = ''
+    for piece in B[1]:
+        if piece.side and piece.type == 'K':
+            file_line_white += f'K{index2location(piece.pos_x, piece.pos_y)}, '
+        elif piece.side and piece.type == 'N':
+            file_line_white += f'N{index2location(piece.pos_x, piece.pos_y)}, '
+        elif piece.side is False and piece.type == 'K':
+            file_line_black += f'K{index2location(piece.pos_x, piece.pos_y)}, '
+        elif piece.side is False and piece.type == 'N':
+            file_line_black += f'N{index2location(piece.pos_x, piece.pos_y)}, '
+
+    return f'{file_line_white[:-2]}\n{file_line_black[:-2]}'
+
+
+
+def save_board(filename: str, B: Board) -> None:
+    """saves board configuration into file in current directory in plain format"""
+    file = open(filename, 'w')
+    file.write(f'{B[0]}\n{conf2file(B)}')
+    file.close()
+    print("The game configuration was saved.")
 
 
 def read_move(move: str, side: bool, B: Board) -> tuple[tuple[int, int], tuple[int, int]]:
