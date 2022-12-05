@@ -217,7 +217,11 @@ def read_board(filename: str) -> Board:
 
 
 def save_board(filename: str, B: Board) -> None:
-    '''saves board configuration into file in current directory in plain format'''
+    """saves board configuration into file in current directory in plain format"""
+    file = open(filename, 'w')
+    file.write(f'{B[0]}\n{conf2file(B)}')
+    file.close()
+    print("The game configuration was saved.")
 
 
 def find_black_move(B: Board) -> tuple[Piece, int, int]:
@@ -234,22 +238,73 @@ def conf2unicode(B: Board) -> str:
     '''converts board cofiguration B to unicode format string (see section Unicode board configurations)'''
 
 
+def next_round(B: Board) -> None:
+    """runs next round"""
+    move_white = input("Next move of White: ")
+    get_move_white = True
+    while get_move_white:
+        try:
+            if move_white == 'QUIT':
+                filename = input("File name to store the configuration: ")
+                save_board(filename, B)
+                break
+            else:
+                # validate move
+                move = read_move(move_white, True, B)
+                piece = piece2type(piece_at(move[0][0], move[0][1], B))
+                print(f'moving piece {piece.type} {piece.pos_x}, {piece.pos_y}')
+                print(f'move to {move[1][0]}, {move[1][1]}')
+                if piece.can_move_to(move[1][0], move[1][1], B):
+                    # make move
+                    new_board_white = piece.move_to(move[1][0], move[1][1], B)
+                    unicode = conf2unicode(new_board_white)
+                    print(f"The configuration after White's move is:\n{unicode}")
+                    if is_checkmate(True, new_board_white):
+                        print("Game over. White wins.")
+                        break
+                    elif is_stalemate(True, new_board_white):
+                        print("Game over. Stalemate.")
+                        break
+                    else:
+                        # get validated move
+                        move_black = find_black_move(new_board_white)
+                        move_from = index2location(move_black[0].pos_x, move_black[0].pos_y)
+                        move_to = index2location(move_black[1], move_black[2])
+                        # make move
+                        new_board_black = piece2type(move_black[0]).move_to(move_black[1], move_black[2], B)
+                        if is_checkmate(False, new_board_black):
+                            print("Game over. Black wins.")
+                            break
+                        elif is_stalemate(False, new_board_black):
+                            print("Game over. Stalemate.")
+                            break
+                        else:
+                            unicode = conf2unicode(new_board_black)
+                            print(f"Next move of Black is {move_from}{move_to}. The configuration after Black's move is:\n{unicode}")
+                            next_round(new_board_black)
+                else:
+                    raise IOError
+        except IOError:
+            move_white = input("This is not a valid move. Next move of White: ")
+
+
 def main() -> None:
-    '''runs the play'''
-    filename = input("File name for initial configuration: ")
+    """runs the play"""
+    initial_filename = input("File name for initial configuration: ")
     get_filename = True
     while get_filename:
         try:
-            if filename == 'QUIT':
+            if initial_filename == 'QUIT':
                 break
             else:
-                board = read_board(filename)
+                board = read_board(initial_filename)
                 get_filename = False
                 unicode = conf2unicode(board)
                 print(f"The initial configuration is:\n{unicode}")
+                next_round(board)
         except IOError:
             print("This is not a valid file.")
-            filename = input("File name for initial configuration: ")
+            initial_filename = input("File name for initial configuration: ")
 
 
 if __name__ == '__main__': #keep this in
