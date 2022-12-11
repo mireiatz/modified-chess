@@ -1,12 +1,13 @@
 from typing import Union
 import copy
 import random
+import os
 
 
 def location2index(loc: str) -> tuple[int, int]:
     """Converts chess location to corresponding x and y coordinates."""
     x = ord(loc[1]) - 96
-    y = int(loc[2])
+    y = int(loc[2:])
     return x, y
 
 
@@ -18,11 +19,10 @@ def index2location(x: int, y: int) -> str:
 
 
 class Piece:
-
     pos_x: int
     pos_y: int
     side: bool  # True for White and False for Black
-    type: str
+    type: str  # 'K' for King and 'N' for Knight
 
     def __init__(self, pos_X: int, pos_Y: int, side_: bool, type_: str):
         """sets initial values"""
@@ -54,16 +54,11 @@ def piece_at(pos_X: int, pos_Y: int, B: Board) -> Piece:
 
 
 class Knight(Piece):
-
     type: str = 'N'
 
     def __init__(self, pos_X: int, pos_Y: int, side_: bool):
         """sets initial values by calling the constructor of Piece"""
         super().__init__(pos_X, pos_Y, side_, self.type)
-
-    def set_location(self, pos_X: int, pos_Y: int) -> None:
-        self.pos_x = pos_X
-        self.pos_y = pos_Y
 
     def can_reach(self, pos_X: int, pos_Y: int, B: Board) -> bool:
         """
@@ -142,12 +137,11 @@ class Knight(Piece):
             if piece.pos_x == self.pos_x and piece.pos_y == self.pos_y:
                 B[1].remove(piece)
 
-        B[1].append(Piece(pos_X, pos_Y, self.side, self.type))
+        B[1].append(piece2type(Piece(pos_X, pos_Y, self.side, self.type)))
         return B
 
 
 class King(Piece):
-
     type: str = 'K'
 
     def __init__(self, pos_X: int, pos_Y: int, side_: bool):
@@ -216,7 +210,7 @@ class King(Piece):
             if piece.pos_x == self.pos_x and piece.pos_y == self.pos_y:
                 B[1].remove(piece)
 
-        B[1].append(Piece(pos_X, pos_Y, self.side, self.type))
+        B[1].append(piece2type(Piece(pos_X, pos_Y, self.side, self.type)))
         return B
 
 
@@ -261,11 +255,12 @@ def is_checkmate(side: bool, B: Board) -> bool:
                 all_locations.append((column, row))
 
         for location in all_locations:
-            for enemy_piece in enemy_pieces:
-                if piece2type(enemy_piece).can_reach(location[0], location[1], B) is False and piece2type(side_king).can_reach(location[0], location[1], B):
-                    checkmate = False
-                    break
-
+            if piece2type(side_king).can_reach(location[0], location[1], B):
+                checkmate = False
+                for enemy_piece in enemy_pieces:
+                    if piece2type(enemy_piece).can_reach(location[0], location[1], B):
+                        checkmate = True
+                        break
         return checkmate
     else:
         return False
@@ -312,11 +307,13 @@ def validate_locations(locations: str) -> bool:
     for location in locations_list:
         location = location.strip()
         # syntax
-        if (location[0] == 'N' or location[0] == 'K') and location[1].isalpha() and location[1].islower() and location[2:].isnumeric() and 0 < int(location[2:]) < 26:
+        if (location[0] == 'N' or location[0] == 'K') and location[1].isalpha() and location[1].islower() and location[
+                                                                                                              2:].isnumeric() and 0 < int(
+                location[2:]) < 26:
             # only one king
             if location[0] == 'K':
                 king += 1
-                if king > 1:
+                if king != 1:
                     return False
         else:
             return False
@@ -334,25 +331,38 @@ def validate_board(filename: str) -> bool:
         - First line: number representing the size of the board
         - Second line: piece locations of white pieces separated by ,
         - Third line: piece locations of black pieces separated by ,
+        - There needs to be 3 lines
     """
+
+    # handle empty file
+    if os.stat(filename).st_size == 0:
+        return False
+
     file = open(filename, 'r')
+
     # 1st line - size
     board_size = file.readline().replace("\n", "")
 
     if board_size.isnumeric() and 3 < int(board_size) < 26:
         # 2nd line - white
         locations_white = file.readline().replace("\n", "")
+        if locations_white == '':
+            return False
         locations_white = locations_white.strip()
         if locations_white[-1] == ',':
             locations_white = locations_white[:-1]
+
         validated_white = validate_locations(locations_white)
 
         if validated_white:
             # 3rd line - black
             locations_black = file.readline().replace("\n", "")
+            if locations_black == '':
+                return False
             locations_black = locations_black.strip()
             if locations_black[-1] == ',':
                 locations_black = locations_black[:-1]
+
             validated_black = validate_locations(locations_black)
 
             if validated_black:
@@ -391,7 +401,7 @@ def locations2pieces(locations: str, side: bool) -> list[Piece]:
 def read_board(filename: str) -> Board:
     """
     reads board configuration from file in current directory in plain format
-    raises IOError exception if file is not valid (see section Plain board configurations)
+    raises OSError exception if file is not valid (see section Plain board configurations)
     """
     if validate_board(filename):
         file = open(filename, 'r')
@@ -418,7 +428,7 @@ def read_board(filename: str) -> Board:
         file.close()
         return board
     else:
-        raise IOError
+        raise OSError
 
 
 def find_black_move(B: Board) -> tuple[Piece, int, int]:
@@ -451,7 +461,7 @@ def conf2unicode(B: Board) -> str:
     """converts board configuration B to unicode format string (see section Unicode board configurations)"""
     unicode = ''
     for row in range(B[0], 0, -1):
-        for column in range(1, B[0]+1):
+        for column in range(1, B[0] + 1):
 
             for piece in B[1]:
                 code = ''
@@ -515,7 +525,8 @@ def read_move(move: str, side: bool, B: Board) -> tuple[tuple[int, int], tuple[i
             to_row = move[3:]
 
         # check syntax
-        if from_column.isalpha() and from_row.isnumeric() and 0 < int(from_row) <= B[0] and to_column.isalpha() and to_row.isnumeric() and 0 < int(to_row) <= B[0]:
+        if from_column.isalpha() and from_row.isnumeric() and 0 < int(from_row) <= B[
+            0] and to_column.isalpha() and to_row.isnumeric() and 0 < int(to_row) <= B[0]:
             # there is a piece at the "from" location
             from_indexes = location2index(f' {from_column}{from_row}')
             to_indexes = location2index(f' {to_column}{to_row}')
@@ -524,13 +535,13 @@ def read_move(move: str, side: bool, B: Board) -> tuple[tuple[int, int], tuple[i
                 if piece_at_origin.side == side:
                     return from_indexes, to_indexes
                 else:
-                    raise IOError
+                    raise OSError
             else:
-                raise IOError
+                raise OSError
         else:
-            raise IOError
+            raise OSError
     else:
-        raise IOError
+        raise OSError
 
 
 def piece2type(piece: Piece) -> Union[King, Knight]:
@@ -556,11 +567,11 @@ def next_round(B: Board) -> None:
                 save_board(filename, B)
                 break
             else:
-                # validate move
+                # validate move - white
                 move = read_move(move_white, True, B)
                 piece = piece2type(piece_at(move[0][0], move[0][1], B))
                 if piece.can_move_to(move[1][0], move[1][1], B):
-                    # make move
+                    # make move - white
                     new_board_white = piece.move_to(move[1][0], move[1][1], B)
                     unicode = conf2unicode(new_board_white)
                     print(f"The configuration after White's move is:\n{unicode}")
@@ -571,11 +582,11 @@ def next_round(B: Board) -> None:
                         print("Game over. Stalemate.")
                         break
                     else:
-                        # get validated move
+                        # get move - black
                         move_black = find_black_move(new_board_white)
                         move_from = index2location(move_black[0].pos_x, move_black[0].pos_y)
                         move_to = index2location(move_black[1], move_black[2])
-                        # make move
+                        # make move - black
                         new_board_black = piece2type(move_black[0]).move_to(move_black[1], move_black[2], B)
                         if is_checkmate(False, new_board_black):
                             print("Game over. Black wins.")
@@ -585,11 +596,12 @@ def next_round(B: Board) -> None:
                             break
                         else:
                             unicode = conf2unicode(new_board_black)
-                            print(f"Next move of Black is {move_from}{move_to}. The configuration after Black's move is:\n{unicode}")
+                            print(
+                                f"Next move of Black is {move_from}{move_to}. The configuration after Black's move is:\n{unicode}")
                             next_round(new_board_black)
                 else:
-                    raise IOError
-        except IOError:
+                    raise OSError
+        except OSError:
             move_white = input("This is not a valid move. Next move of White: ")
 
 
@@ -607,7 +619,7 @@ def main() -> None:
                 unicode = conf2unicode(board)
                 print(f"The initial configuration is:\n{unicode}")
                 next_round(board)
-        except IOError:
+        except OSError:
             print("This is not a valid file.")
             initial_filename = input("File name for initial configuration: ")
 
