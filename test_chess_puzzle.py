@@ -440,6 +440,40 @@ def test_is_checkmate6():
     B2 = (5, [wn1, wn2, wn3, wk1, bn1, bk1, bn2])
     assert is_checkmate(False, B2) is False
 
+# is stalemate
+def test_is_stalemate1():
+    """stalemate for white"""
+    B2 = (4, [Knight(1, 2, False), King(3, 3, False), King(4, 1, True)])
+    assert is_stalemate(True, B2)
+
+
+def test_is_stalemate2():
+    """stalemate for white"""
+    B2 = (3, [King(1, 3, False), Knight(1, 1, False), King(3, 3, True)])
+    assert is_stalemate(True, B2)
+
+
+def test_is_stalemate3():
+    """stalemate for black"""
+    B2 = (5, [King(1, 1, False), Knight(2, 4, True), King(3, 2, True)])
+    assert is_stalemate(False, B2)
+
+
+def test_is_stalemate4():
+    """stalemate for black"""
+    B2 = (4, [King(2, 3, True), Knight(3, 1, True), King(4, 4, False)])
+    assert is_stalemate(False, B2)
+
+
+def test_is_stalemate5():
+    """not stalemate for white"""
+    assert is_stalemate(True, B1) is False
+
+
+def test_is_stalemate6():
+    """not stalemate for black"""
+    assert is_stalemate(False, B1) is False
+
 
 # read board configuration
 def test_read_board1():

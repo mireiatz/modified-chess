@@ -133,10 +133,11 @@ class Knight(Piece):
             if piece.pos_x == pos_X and piece.pos_y == pos_Y:
                 B[1].remove(piece)
 
-            # move to location
+            # move from location
             if piece.pos_x == self.pos_x and piece.pos_y == self.pos_y:
                 B[1].remove(piece)
 
+        # move to location
         B[1].append(piece2type(Piece(pos_X, pos_Y, self.side, self.type)))
         return B
 
@@ -206,10 +207,11 @@ class King(Piece):
             if piece.pos_x == pos_X and piece.pos_y == pos_Y:
                 B[1].remove(piece)
 
-            # move to location
+            # move from location
             if piece.pos_x == self.pos_x and piece.pos_y == self.pos_y:
                 B[1].remove(piece)
 
+        # move to location
         B[1].append(piece2type(Piece(pos_X, pos_Y, self.side, self.type)))
         return B
 
@@ -275,7 +277,6 @@ def is_stalemate(side: bool, B: Board) -> bool:
     - use can_move_to
     """
     if is_check(side, B) is False:
-        stalemate = True
         pieces = []
         locations = []
         for piece in B[1]:
@@ -288,9 +289,9 @@ def is_stalemate(side: bool, B: Board) -> bool:
 
         for location in locations:
             for piece in pieces:
-                if piece.pos_x == location[0] and piece.pos_y == location[1]:
-                    stalemate = False
-        return stalemate
+                if piece.can_move_to(location[0], location[1], B):
+                    return False
+        return True
     else:
         return False
 
@@ -343,7 +344,7 @@ def validate_board(filename: str) -> bool:
     # 1st line - size
     board_size = file.readline().replace("\n", "")
 
-    if board_size.isnumeric() and 3 < int(board_size) < 26:
+    if board_size.isnumeric() and 3 <= int(board_size) < 26:
         # 2nd line - white
         locations_white = file.readline().replace("\n", "")
         if locations_white == '':
@@ -561,12 +562,12 @@ def next_round(B: Board) -> None:
     move_white = input("Next move of White: ")
     get_move_white = True
     while get_move_white:
-        try:
-            if move_white == 'QUIT':
-                filename = input("File name to store the configuration: ")
-                save_board(filename, B)
-                break
-            else:
+        if move_white == 'QUIT':
+            filename = input("File name to store the configuration: ")
+            save_board(filename, B)
+            get_move_white = False
+        else:
+            try:
                 # validate move - white
                 move = read_move(move_white, True, B)
                 piece = piece2type(piece_at(move[0][0], move[0][1], B))
@@ -596,13 +597,13 @@ def next_round(B: Board) -> None:
                             break
                         else:
                             unicode = conf2unicode(new_board_black)
-                            print(
-                                f"Next move of Black is {move_from}{move_to}. The configuration after Black's move is:\n{unicode}")
+                            print(f"Next move of Black is {move_from}{move_to}. The configuration after Black's move is:\n{unicode}")
                             next_round(new_board_black)
                 else:
                     raise OSError
-        except OSError:
-            move_white = input("This is not a valid move. Next move of White: ")
+            except OSError:
+                move_white = input("This is not a valid move. Next move of White: ")
+
 
 
 def main() -> None:
@@ -620,8 +621,7 @@ def main() -> None:
                 print(f"The initial configuration is:\n{unicode}")
                 next_round(board)
         except OSError:
-            print("This is not a valid file.")
-            initial_filename = input("File name for initial configuration: ")
+            initial_filename = input("This is not a valid file. File name for initial configuration: ")
 
 
 if __name__ == '__main__': #keep this in
