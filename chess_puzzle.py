@@ -2,6 +2,7 @@ from typing import Union
 import copy
 import random
 import os
+import sys
 
 
 def location2index(loc: str) -> tuple[int, int]:
@@ -508,6 +509,7 @@ def save_board(filename: str, B: Board) -> None:
     file.write(f'{B[0]}\n{conf2file(B)}')
     file.close()
     print("The game configuration was saved.")
+    sys.exit()
 
 
 def read_move(move: str, side: bool, B: Board) -> tuple[tuple[int, int], tuple[int, int]]:
@@ -565,7 +567,6 @@ def next_round(B: Board) -> None:
         if move_white == 'QUIT':
             filename = input("File name to store the configuration: ")
             save_board(filename, B)
-            get_move_white = False
         else:
             try:
                 # validate move - white
