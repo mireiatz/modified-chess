@@ -562,49 +562,46 @@ def piece2type(piece: Piece) -> Union[King, Knight]:
 def next_round(B: Board) -> None:
     """runs next round"""
     move_white = input("Next move of White: ")
-    get_move_white = True
-    while get_move_white:
-        if move_white == 'QUIT':
-            filename = input("File name to store the configuration: ")
-            save_board(filename, B)
-        else:
-            try:
-                # validate move - white
-                move = read_move(move_white, True, B)
-                piece = piece2type(piece_at(move[0][0], move[0][1], B))
-                if piece.can_move_to(move[1][0], move[1][1], B):
-                    # make move - white
-                    new_board_white = piece.move_to(move[1][0], move[1][1], B)
-                    unicode = conf2unicode(new_board_white)
-                    print(f"The configuration after White's move is:\n{unicode}")
-                    if is_checkmate(True, new_board_white):
-                        print("Game over. White wins.")
+    while move_white != 'QUIT':
+        try:
+            # validate move - white
+            move = read_move(move_white, True, B)
+            piece = piece2type(piece_at(move[0][0], move[0][1], B))
+            if piece.can_move_to(move[1][0], move[1][1], B):
+                # make move - white
+                new_board_white = piece.move_to(move[1][0], move[1][1], B)
+                unicode = conf2unicode(new_board_white)
+                print(f"The configuration after White's move is:\n{unicode}")
+                if is_checkmate(True, new_board_white):
+                    print("Game over. White wins.")
+                    break
+                elif is_stalemate(True, new_board_white):
+                    print("Game over. Stalemate.")
+                    break
+                else:
+                    # get move - black
+                    move_black = find_black_move(new_board_white)
+                    move_from = index2location(move_black[0].pos_x, move_black[0].pos_y)
+                    move_to = index2location(move_black[1], move_black[2])
+                    # make move - black
+                    new_board_black = piece2type(move_black[0]).move_to(move_black[1], move_black[2], B)
+                    if is_checkmate(False, new_board_black):
+                        print("Game over. Black wins.")
                         break
-                    elif is_stalemate(True, new_board_white):
+                    elif is_stalemate(False, new_board_black):
                         print("Game over. Stalemate.")
                         break
                     else:
-                        # get move - black
-                        move_black = find_black_move(new_board_white)
-                        move_from = index2location(move_black[0].pos_x, move_black[0].pos_y)
-                        move_to = index2location(move_black[1], move_black[2])
-                        # make move - black
-                        new_board_black = piece2type(move_black[0]).move_to(move_black[1], move_black[2], B)
-                        if is_checkmate(False, new_board_black):
-                            print("Game over. Black wins.")
-                            break
-                        elif is_stalemate(False, new_board_black):
-                            print("Game over. Stalemate.")
-                            break
-                        else:
-                            unicode = conf2unicode(new_board_black)
-                            print(f"Next move of Black is {move_from}{move_to}. The configuration after Black's move is:\n{unicode}")
-                            next_round(new_board_black)
-                else:
-                    raise OSError
-            except OSError:
-                move_white = input("This is not a valid move. Next move of White: ")
-
+                        unicode = conf2unicode(new_board_black)
+                        print(f"Next move of Black is {move_from}{move_to}. The configuration after Black's move is:\n{unicode}")
+                        B = copy.deepcopy(new_board_black)
+                        move_white = input("Next move of White: ")
+            else:
+                raise OSError
+        except OSError:
+            move_white = input("This is not a valid move. Next move of White: ")
+    filename = input("File name to store the configuration: ")
+    save_board(filename, B)
 
 
 def main() -> None:
