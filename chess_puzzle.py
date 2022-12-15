@@ -503,13 +503,18 @@ def conf2file(B: Board) -> str:
     return f'{file_line_white[:-2]}\n{file_line_black[:-2]}'
 
 
-def save_board(filename: str, B: Board) -> None:
+def save_board(B: Board) -> None:
     """saves board configuration into file in current directory in plain format"""
-    file = open(filename, 'w')
-    file.write(f'{B[0]}\n{conf2file(B)}')
-    file.close()
-    print("The game configuration was saved.")
-    sys.exit()
+    try:
+        filename = input("File name to store the configuration: ")
+        file = open(filename, 'w')
+        file.write(f'{B[0]}\n{conf2file(B)}')
+        file.close()
+        print("The game configuration was saved.")
+        sys.exit()
+    except OSError:
+        print("The file could not be saved.")
+        save_board(B)
 
 
 def read_move(move: str, side: bool, B: Board) -> tuple[tuple[int, int], tuple[int, int]]:
@@ -600,7 +605,6 @@ def next_round(B: Board) -> None:
                 raise OSError
         except OSError:
             move_white = input("This is not a valid move. Next move of White: ")
-    filename = input("File name to store the configuration: ")
     save_board(filename, B)
 
 
