@@ -246,25 +246,27 @@ def is_checkmate(side: bool, B: Board) -> bool:
     if is_check(side, B):
         enemy_pieces = []
         all_locations = []
-        checkmate = True
+        king = False
         for piece in B[1]:
             if piece.side != side:
                 enemy_pieces.append(piece)
             if piece.side == side and piece.type == 'K':
                 side_king = piece
+                king = True
 
-        for row in range(B[0], 0, -1):
-            for column in range(1, B[0] + 1):
-                all_locations.append((column, row))
+        if king:
+            for row in range(B[0], 0, -1):
+                for column in range(1, B[0] + 1):
+                    all_locations.append((column, row))
 
-        for location in all_locations:
-            if piece2type(side_king).can_reach(location[0], location[1], B):
-                checkmate = False
-                for enemy_piece in enemy_pieces:
-                    if piece2type(enemy_piece).can_reach(location[0], location[1], B):
-                        checkmate = True
-                        break
-        return checkmate
+            for location in all_locations:
+                if piece2type(side_king).can_reach(location[0], location[1], B):
+                    for enemy_piece in enemy_pieces:
+                        if piece2type(enemy_piece).can_reach(location[0], location[1], B):
+                            return True
+        else:
+            return False
+        return False
     else:
         return False
 
