@@ -224,14 +224,17 @@ def is_check(side: bool, B: Board) -> bool:
     Hint: use can_reach
     """
     enemy_pieces = []
+    king = False
     for piece in B[1]:
         if piece.side != side:
             enemy_pieces.append(piece)
         if piece.side == side and piece.type == 'K':
             side_king = piece
-    for enemy_piece in enemy_pieces:
-        if piece2type(enemy_piece).can_reach(side_king.pos_x, side_king.pos_y, B):
-            return True
+            king = True
+    if king:
+        for enemy_piece in enemy_pieces:
+            if piece2type(enemy_piece).can_reach(side_king.pos_x, side_king.pos_y, B):
+                return True
     return False
 
 
@@ -264,8 +267,6 @@ def is_checkmate(side: bool, B: Board) -> bool:
                     for enemy_piece in enemy_pieces:
                         if piece2type(enemy_piece).can_reach(location[0], location[1], B):
                             return True
-        else:
-            return False
         return False
     else:
         return False
