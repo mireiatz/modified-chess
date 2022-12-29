@@ -582,10 +582,10 @@ def next_round(B: Board) -> None:
                 print(f"The configuration after White's move is:\n{unicode}")
                 if is_checkmate(True, new_board_white):
                     print("Game over. White wins.")
-                    break
+                    sys.exit()
                 elif is_stalemate(True, new_board_white):
                     print("Game over. Stalemate.")
-                    break
+                    sys.exit()
                 else:
                     # get move - black
                     move_black = find_black_move(new_board_white)
@@ -608,7 +608,7 @@ def next_round(B: Board) -> None:
                 raise OSError
         except OSError:
             move_white = input("This is not a valid move. Next move of White: ")
-    save_board(filename, B)
+    save_board(B)
 
 
 def main() -> None:
