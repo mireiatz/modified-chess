@@ -131,13 +131,14 @@ class Knight(Piece):
         """
         enemy_piece = False
         for piece in B[1]:
-            # capture
+            # piece to capture
             if piece.pos_x == pos_X and piece.pos_y == pos_Y:
                 capture = piece
                 enemy_piece = True
-            # move from location
+            # piece to move from location
             if piece.pos_x == self.pos_x and piece.pos_y == self.pos_y:
                 own_piece = piece
+
         # capture
         if enemy_piece:
             B[1].remove(capture)
@@ -157,7 +158,7 @@ class King(Piece):
 
     def can_reach(self, pos_X: int, pos_Y: int, B: Board) -> bool:
         """checks if this king can move to coordinates pos_X, pos_Y on board B according to rule [Rule2] and [Rule3] """
-        # rule 1
+        # rule 2
         if (pos_X == self.pos_x - 1 and pos_Y == self.pos_y) or (
                 pos_X == self.pos_x - 1 and pos_Y == self.pos_y - 1) or (
                 pos_X == self.pos_x - 1 and pos_Y == self.pos_y + 1) or (
@@ -180,7 +181,7 @@ class King(Piece):
 
     def can_move_to(self, pos_X: int, pos_Y: int, B: Board) -> bool:
         """checks if this king can move to coordinates pos_X, pos_Y on board B according to all chess rules"""
-        # rule 1 and rule 3
+        # rule 2 and rule 3
         if self.can_reach(pos_X, pos_Y, B):
             B2 = copy.deepcopy(B)
 
@@ -210,14 +211,15 @@ class King(Piece):
         """
         enemy_piece = False
         for piece in B[1]:
-            # capture
+            # piece to capture
             if piece.pos_x == pos_X and piece.pos_y == pos_Y:
                 capture = piece
                 enemy_piece = True
 
-            # move from location
+            # piece to move from location
             if piece.pos_x == self.pos_x and piece.pos_y == self.pos_y:
                 own_piece = piece
+
         # capture
         if enemy_piece:
             B[1].remove(capture)
@@ -236,6 +238,8 @@ def is_check(side: bool, B: Board) -> bool:
     """
     enemy_pieces = []
     king = False
+
+    # find enemy pieces and king
     for piece in B[1]:
         if piece.side != side:
             enemy_pieces.append(piece)
@@ -243,6 +247,7 @@ def is_check(side: bool, B: Board) -> bool:
             side_king = piece
             king = True
     if king:
+        # can an enemy piece reach the king
         for enemy_piece in enemy_pieces:
             if piece2type(enemy_piece).can_reach(side_king.pos_x, side_king.pos_y, B):
                 return True
@@ -257,10 +262,13 @@ def is_checkmate(side: bool, B: Board) -> bool:
     - use is_check
     - use can_move_to
     """
+    # is in check
     if is_check(side, B):
         enemy_pieces = []
         all_locations = []
         king = False
+
+        # find enemy pieces and king
         for piece in B[1]:
             if piece.side != side:
                 enemy_pieces.append(piece)
@@ -269,10 +277,12 @@ def is_checkmate(side: bool, B: Board) -> bool:
                 king = True
 
         if king:
+            # find all locations
             for row in range(B[0], 0, -1):
                 for column in range(1, B[0] + 1):
                     all_locations.append((column, row))
 
+            # for each location can an enemy piece move to locations the king can move to
             for location in all_locations:
                 if piece2type(side_king).can_move_to(location[0], location[1], B):
                     for enemy_piece in enemy_pieces:
@@ -293,17 +303,22 @@ def is_stalemate(side: bool, B: Board) -> bool:
     - use is_check
     - use can_move_to
     """
+    # is not in check
     if is_check(side, B) is False:
         pieces = []
         locations = []
+
+        # find all pieces
         for piece in B[1]:
             if piece.side == side:
                 pieces.append(piece)
 
+        # find all locations
         for row in range(B[0], 0, -1):
             for column in range(1, B[0] + 1):
                 locations.append((column, row))
 
+        # can any piece make a move
         for location in locations:
             for piece in pieces:
                 if piece2type(piece).can_move_to(location[0], location[1], B):
@@ -319,14 +334,13 @@ def validate_locations(locations: str) -> bool:
         - Only one king of each colour
         - Only one piece for location
         - Each location is within s*s"""
-
     locations_list = locations.split(',')
     king = 0
     for location in locations_list:
         location = location.strip()
+
         # syntax
-        if (location[0] == 'N' or location[0] == 'K') and location[1].isalpha() and location[1].islower() and location[
-                                                                                                              2:].isnumeric() and 0 < int(
+        if (location[0] == 'N' or location[0] == 'K') and location[1].isalpha() and location[1].islower() and location[2:].isnumeric() and 0 < int(
                 location[2:]) < 26:
             # only one king
             if location[0] == 'K':
@@ -336,7 +350,7 @@ def validate_locations(locations: str) -> bool:
         else:
             return False
 
-    # only one piece for location - no duplicates
+    # only one piece per location - no duplicates
     if len(locations_list) != len(set(locations_list)):
         return False
 
@@ -352,7 +366,7 @@ def validate_board(filename: str) -> bool:
         - There needs to be 3 lines
     """
 
-    # handle empty file
+    # empty file
     if os.stat(filename).st_size == 0:
         return False
 
@@ -440,6 +454,7 @@ def read_board(filename: str) -> Board:
             locations_black = locations_black[:-1]
         pieces_black = locations2pieces(locations_black, False)
 
+        # board
         all_pieces = pieces_white + pieces_black
         board = (board_size, all_pieces)
         file.close()
@@ -459,19 +474,21 @@ def find_black_move(B: Board) -> tuple[Piece, int, int]:
     """
     locations = []
     possible_moves = []
-    #move = ()
+    
+    # locations
     for row in range(B[0], 0, -1):
         for column in range(1, B[0] + 1):
             locations.append((column, row))
-
+    
+    # possible moves
     for piece in B[1]:
         if piece.side is False:
             for location in locations:
                 if piece2type(piece).can_move_to(location[0], location[1], B):
                     possible_moves.append((piece, location[0], location[1]))
-    #if len(possible_moves) > 1:
+    
+    # choose random move
     r = random.randrange(len(possible_moves))
-      #  move = possible_moves[r]
     return possible_moves[r]
 
 
@@ -535,7 +552,6 @@ def save_board(B: Board) -> None:
 
 def read_move(move: str, side: bool, B: Board) -> tuple[tuple[int, int], tuple[int, int]]:
     """checks if move is of valid format and returns the locations"""
-
     # check syntax
     if move.isalnum():
         from_column = move[0]
@@ -550,9 +566,10 @@ def read_move(move: str, side: bool, B: Board) -> tuple[tuple[int, int], tuple[i
 
         # check syntax
         if from_column.isalpha() and from_row.isnumeric() and 0 < int(from_row) <= B[0] and to_column.isalpha() and to_row.isnumeric() and 0 < int(to_row) <= B[0]:
-            # there is a piece at the "from" location
             from_indexes = location2index(f' {from_column}{from_row}')
             to_indexes = location2index(f' {to_column}{to_row}')
+
+            # there is a piece at the "from" location
             if is_piece_at(from_indexes[0], from_indexes[1], B):
                 piece_at_origin = piece_at(from_indexes[0], from_indexes[1], B)
                 if piece_at_origin.side == side:
