@@ -129,15 +129,20 @@ class Knight(Piece):
         """
         returns new board resulting from move of this rook to coordinates pos_X, pos_Y on board B, assumes this move is valid according to chess rules
         """
+        enemy_piece = False
         for piece in B[1]:
             # capture
             if piece.pos_x == pos_X and piece.pos_y == pos_Y:
-                B[1].remove(piece)
-
+                capture = piece
+                enemy_piece = True
             # move from location
             if piece.pos_x == self.pos_x and piece.pos_y == self.pos_y:
-                B[1].remove(piece)
-
+                own_piece = piece
+        # capture
+        if enemy_piece:
+            B[1].remove(capture)
+        # move from location
+        B[1].remove(own_piece)
         # move to location
         B[1].append(piece2type(Piece(pos_X, pos_Y, self.side, self.type)))
         return B
@@ -203,15 +208,21 @@ class King(Piece):
         """
         returns new board resulting from move of this king to coordinates pos_X, pos_Y on board B, assumes this move is valid according to chess rules
         """
+        enemy_piece = False
         for piece in B[1]:
             # capture
             if piece.pos_x == pos_X and piece.pos_y == pos_Y:
-                B[1].remove(piece)
+                capture = piece
+                enemy_piece = True
 
             # move from location
             if piece.pos_x == self.pos_x and piece.pos_y == self.pos_y:
-                B[1].remove(piece)
-
+                own_piece = piece
+        # capture
+        if enemy_piece:
+            B[1].remove(capture)
+        # move from location
+        B[1].remove(own_piece)
         # move to location
         B[1].append(piece2type(Piece(pos_X, pos_Y, self.side, self.type)))
         return B
@@ -244,7 +255,7 @@ def is_checkmate(side: bool, B: Board) -> bool:
 
     Hints:
     - use is_check
-    - use can_reach
+    - use can_move_to
     """
     if is_check(side, B):
         enemy_pieces = []
@@ -263,11 +274,13 @@ def is_checkmate(side: bool, B: Board) -> bool:
                     all_locations.append((column, row))
 
             for location in all_locations:
-                if piece2type(side_king).can_reach(location[0], location[1], B):
+                if piece2type(side_king).can_move_to(location[0], location[1], B):
                     for enemy_piece in enemy_pieces:
-                        if piece2type(enemy_piece).can_reach(location[0], location[1], B):
-                            return True
-        return False
+                        if piece2type(enemy_piece).can_move_to(location[0], location[1], B) is False:
+                            return False
+            return True
+        else:
+            return False
     else:
         return False
 
@@ -293,7 +306,7 @@ def is_stalemate(side: bool, B: Board) -> bool:
 
         for location in locations:
             for piece in pieces:
-                if piece.can_move_to(location[0], location[1], B):
+                if piece2type(piece).can_move_to(location[0], location[1], B):
                     return False
         return True
     else:
@@ -428,7 +441,6 @@ def read_board(filename: str) -> Board:
         pieces_black = locations2pieces(locations_black, False)
 
         all_pieces = pieces_white + pieces_black
-
         board = (board_size, all_pieces)
         file.close()
         return board
@@ -447,6 +459,7 @@ def find_black_move(B: Board) -> tuple[Piece, int, int]:
     """
     locations = []
     possible_moves = []
+    #move = ()
     for row in range(B[0], 0, -1):
         for column in range(1, B[0] + 1):
             locations.append((column, row))
@@ -456,18 +469,18 @@ def find_black_move(B: Board) -> tuple[Piece, int, int]:
             for location in locations:
                 if piece2type(piece).can_move_to(location[0], location[1], B):
                     possible_moves.append((piece, location[0], location[1]))
-
+    #if len(possible_moves) > 1:
     r = random.randrange(len(possible_moves))
-
+      #  move = possible_moves[r]
     return possible_moves[r]
 
 
 def conf2unicode(B: Board) -> str:
     """converts board configuration B to unicode format string (see section Unicode board configurations)"""
     unicode = ''
+    code = ''
     for row in range(B[0], 0, -1):
         for column in range(1, B[0] + 1):
-
             for piece in B[1]:
                 code = ''
                 if piece.pos_x == column and piece.pos_y == row:
@@ -536,8 +549,7 @@ def read_move(move: str, side: bool, B: Board) -> tuple[tuple[int, int], tuple[i
             to_row = move[3:]
 
         # check syntax
-        if from_column.isalpha() and from_row.isnumeric() and 0 < int(from_row) <= B[
-            0] and to_column.isalpha() and to_row.isnumeric() and 0 < int(to_row) <= B[0]:
+        if from_column.isalpha() and from_row.isnumeric() and 0 < int(from_row) <= B[0] and to_column.isalpha() and to_row.isnumeric() and 0 < int(to_row) <= B[0]:
             # there is a piece at the "from" location
             from_indexes = location2index(f' {from_column}{from_row}')
             to_indexes = location2index(f' {to_column}{to_row}')
@@ -580,10 +592,10 @@ def next_round(B: Board) -> None:
                 new_board_white = piece.move_to(move[1][0], move[1][1], B)
                 unicode = conf2unicode(new_board_white)
                 print(f"The configuration after White's move is:\n{unicode}")
-                if is_checkmate(True, new_board_white):
+                if is_checkmate(False, new_board_white):
                     print("Game over. White wins.")
                     sys.exit()
-                elif is_stalemate(True, new_board_white):
+                elif is_stalemate(False, new_board_white):
                     print("Game over. Stalemate.")
                     sys.exit()
                 else:
@@ -593,15 +605,15 @@ def next_round(B: Board) -> None:
                     move_to = index2location(move_black[1], move_black[2])
                     # make move - black
                     new_board_black = piece2type(move_black[0]).move_to(move_black[1], move_black[2], B)
-                    if is_checkmate(False, new_board_black):
+                    unicode = conf2unicode(new_board_black)
+                    print(f"Next move of Black is {move_from}{move_to}. The configuration after Black's move is:\n{unicode}")
+                    if is_checkmate(True, new_board_black):
                         print("Game over. Black wins.")
-                        break
-                    elif is_stalemate(False, new_board_black):
+                        sys.exit()
+                    elif is_stalemate(True, new_board_black):
                         print("Game over. Stalemate.")
-                        break
+                        sys.exit()
                     else:
-                        unicode = conf2unicode(new_board_black)
-                        print(f"Next move of Black is {move_from}{move_to}. The configuration after Black's move is:\n{unicode}")
                         B = copy.deepcopy(new_board_black)
                         move_white = input("Next move of White: ")
             else:
@@ -629,5 +641,5 @@ def main() -> None:
             initial_filename = input("This is not a valid file. File name for initial configuration: ")
 
 
-if __name__ == '__main__': #keep this in
-   main()
+if __name__ == '__main__':  # keep this in
+    main()
