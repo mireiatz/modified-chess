@@ -553,7 +553,7 @@ def save_board(B: Board) -> None:
 def read_move(move: str, side: bool, B: Board) -> tuple[tuple[int, int], tuple[int, int]]:
     """checks if move is of valid format and returns the locations"""
     # check syntax
-    if move.isalnum():
+    if move.isalnum() and 3 < len(move) < 7:
         from_column = move[0]
         if move[1:3].isnumeric():
             from_row = move[1:3]
