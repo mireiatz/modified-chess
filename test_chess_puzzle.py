@@ -406,12 +406,7 @@ def test_is_checkmate2():
 
 def test_is_checkmate3():
     """checkmate for black"""
-    wn4 = Knight(4, 4, True)
-    wn5 = Knight(4, 1, True)
-    wn6 = Knight(5, 3, True)
-    wn7 = Knight(2, 2, True)
-    wn8 = Knight(2, 1, True)
-    B2 = (5, [wn1, wn2, wn3, wn4, wn5, wn6, wn7, wn8, wk1, bn1, bk1, bn2])
+    B2 = (3, [Knight(1, 2, True), King(2, 1, False), King(2, 3, True), Knight(3, 2, True), Knight(3, 3, True)])
     assert is_checkmate(False, B2)
 
 
